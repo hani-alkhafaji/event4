@@ -95,13 +95,13 @@
             transition: color 0.25s;
         }
 
-      .counter-above.highlight-red {
-    color: #FFFFFF; /* النص يبقى أبيض */
-}
+        .counter-above.highlight-red {
+            color: #FFFFFF; /* keep text white */
+        }
 
-.counter-above.highlight-red .counter-number {
-    color: #ff4444; /* الرقم فقط يصبح أحمر */
-}
+        .counter-above.highlight-red .counter-number {
+            color: #ff4444; /* only number red */
+        }
 
         .profile-stack {
             display: flex;
@@ -344,26 +344,23 @@
             .two-columns { gap: 16px; }
             .column { max-width: 140px; }
         }
-      #going-num,
-#interesting-num {
-    font-size: 24px;   /* bigger numbers */
-}
+
+        #going-num,
+        #interesting-num {
+            font-size: 24px;   /* bigger numbers */
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="event-title">Waiting for the Text...</h1>
 
-        <div class="buttons-row">
-            <button type="button" class="btn-action" id="btn-going">Going</button>
-            <button type="button" class="btn-action" id="btn-interesting">Interesting</button>
-        </div>
-
+        <!-- نقل العدادات فوق الأزرار -->
         <div class="two-columns">
             <div class="column">
                 <div class="counter-above" id="going-counter-above">
-    <span id="going-num" class="counter-number">...</span> People are Going
-</div>
+                    <span id="going-num" class="counter-number">...</span> People are Going
+                </div>
                 <div class="profile-stack">
                     <div class="circle" id="going-img-1">
                         <img src="going1.jpg" alt="" onerror="this.style.display='none'">
@@ -385,7 +382,7 @@
 
             <div class="column">
                 <div class="counter-above" id="interesting-counter-above">
-            <span id="interesting-num" class="counter-number">...</span> People Interesting
+                    <span id="interesting-num" class="counter-number">...</span> People Interesting
                 </div>
                 <div class="profile-stack">
                     <div class="circle" id="interesting-img-1">
@@ -405,6 +402,12 @@
                     <span id="interesting-plus">31</span>+
                 </div>
             </div>
+        </div>
+
+        <!-- الأزرار أصبحت تحت العدادات -->
+        <div class="buttons-row">
+            <button type="button" class="btn-action" id="btn-going">Going</button>
+            <button type="button" class="btn-action" id="btn-interesting">Interesting</button>
         </div>
 
         <section class="form-section" id="form-section">
@@ -541,62 +544,61 @@
                 var form = document.getElementById('reg-form');
                 var success = document.getElementById('success-msg');
 
-                btn.classList.add('loading');
-                btn.disabled = true;
-                spinner.classList.add('show');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            spinner.classList.add('show');
 
-                var data = {
-                    fullName: document.getElementById('fullname').value,
-                    birthday: document.getElementById('birthday').value,
-                    instagram: document.getElementById('instagram').value,
-                    reason: document.getElementById('reason').value,
-                    guestCount: guestCount
-                };
-
-                if (REGISTRATION_SCRIPT_URL) {
-                    fetch(REGISTRATION_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(function() {});
-                }
-
-                setTimeout(function() {
-                    spinner.classList.remove('show');
-                    btn.classList.remove('loading');
-                    btn.disabled = false;
-                    form.style.display = 'none';
-                    success.classList.add('show');
-                    form.reset();
-                    document.getElementById('upload-error').classList.remove('show');
-                    guestCount = 0;
-                    plusStep = 1;
-                    updateGuestDisplay();
-                }, 2000);
-
-                return false;
+            var data = {
+                fullName: document.getElementById('fullname').value,
+                birthday: document.getElementById('birthday').value,
+                instagram: document.getElementById('instagram').value,
+                reason: document.getElementById('reason').value,
+                guestCount: guestCount
             };
 
-            function applyConfig(data) {
-                if (data && data.eventTitle != null) document.querySelector('.event-title').textContent = data.eventTitle;
-                if (data && data.goingNum != null) state.goingNum = Number(data.goingNum);
-                if (data && data.goingPlus != null) state.goingPlus = Number(data.goingPlus);
-                if (data && data.interestingNum != null) state.interestingNum = Number(data.interestingNum);
-                if (data && data.interestingPlus != null) state.interestingPlus = Number(data.interestingPlus);
-                updateDisplay();
+            if (REGISTRATION_SCRIPT_URL) {
+                fetch(REGISTRATION_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(function() {});
             }
-            if (CONFIG_SCRIPT_URL) {
-                fetch(CONFIG_SCRIPT_URL).then(function(r) { return r.json(); }).then(applyConfig).catch(function() { updateDisplay(); });
-            } else {
-                updateDisplay();
-            }
-            updateGuestDisplay();
 
-            document.querySelectorAll('.circle img').forEach(function(img) {
-                function markLoaded() {
-                    if (img.complete && img.naturalWidth > 0) img.closest('.circle').classList.add('has-image');
-                }
-                img.onload = markLoaded;
-                markLoaded();
-            });
-        })();
+            setTimeout(function() {
+                spinner.classList.remove('show');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                form.style.display = 'none';
+                success.classList.add('show');
+                form.reset();
+                document.getElementById('upload-error').classList.remove('show');
+                guestCount = 0;
+                plusStep = 1;
+                updateGuestDisplay();
+            }, 2000);
+
+            return false;
+        };
+
+        function applyConfig(data) {
+            if (data && data.eventTitle != null) document.querySelector('.event-title').textContent = data.eventTitle;
+            if (data && data.goingNum != null) state.goingNum = Number(data.goingNum);
+            if (data && data.goingPlus != null) state.goingPlus = Number(data.goingPlus);
+            if (data && data.interestingNum != null) state.interestingNum = Number(data.interestingNum);
+            if (data && data.interestingPlus != null) state.interestingPlus = Number(data.interestingPlus);
+            updateDisplay();
+        }
+        if (CONFIG_SCRIPT_URL) {
+            fetch(CONFIG_SCRIPT_URL).then(function(r) { return r.json(); }).then(applyConfig).catch(function() { updateDisplay(); });
+        } else {
+            updateDisplay();
+        }
+        updateGuestDisplay();
+
+        document.querySelectorAll('.circle img').forEach(function(img) {
+            function markLoaded() {
+                if (img.complete && img.naturalWidth > 0) img.closest('.circle').classList.add('has-image');
+            }
+            img.onload = markLoaded;
+            markLoaded();
+        });
+    })();
     </script>
 </body>
 </html>
-
