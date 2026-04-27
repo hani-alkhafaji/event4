@@ -1,161 +1,537 @@
 <!DOCTYPE html>
+<!--
+  EVENT REGISTRATION PAGE — Site 1 (same as Site 2, but with "reason for joining" box).
+  - Event title and numbers from /api/config.
+  - Form sends to REGISTRATION_SCRIPT_URL (set your Site 1 Google Apps Script URL below).
+  - Removed: reason for joining textarea, birthday input.
+  - Removed: 6 images + numbers under them, and the optional Instagram profile-photo upload box.
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Admin - Edit event title and numbers</title>
+    <title>Registration Event Page</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
+            background-color: #0066FF;
+            color: #FFFFFF;
             min-height: 100vh;
-            padding: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .admin-wrap { max-width: 480px; margin: 0 auto; }
-        h1 { font-size: 22px; margin-bottom: 20px; color: #00C896; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #aaa; }
-        .form-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #2a2a3e; color: #fff; font-size: 16px; }
-        .form-group input:focus { outline: 2px solid #00C896; outline-offset: 2px; }
-        .btn { padding: 12px 24px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-primary { background: #00C896; color: #000; margin-top: 8px; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .msg { margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; }
-        .msg.success { display: block; background: rgba(0,200,150,0.2); color: #00C896; }
-        .msg.error { display: block; background: rgba(255,68,68,0.2); color: #ff4444; }
-        .login-box { max-width: 320px; margin: 40px auto; padding: 24px; background: #2a2a3e; border-radius: 12px; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a2e; color: #fff; }
-        .login-box button { width: 100%; padding: 12px; background: #00C896; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .login-box .error { color: #ff4444; font-size: 14px; margin-top: 8px; display: none; }
-        .login-box .error.show { display: block; }
-        .hint { font-size: 12px; color: #888; margin-top: 20px; }
-        .hint a { color: #00C896; }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .event-title {
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 16px;
+            margin-bottom: 20px;
+            color: #FFFFFF;
+        }
+
+        .buttons-row {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .btn-action {
+            flex: 1;
+            max-width: 180px;
+            background-color: #00C896;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .btn-action:active {
+            transform: scale(0.97);
+        }
+
+        .two-columns {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 160px;
+        }
+
+        .counter-above {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFFFFF;
+            text-align: center;
+            margin-bottom: 10px;
+            transition: color 0.25s;
+        }
+
+        .counter-above.highlight-red {
+            color: #FFFFFF; /* النص يبقى أبيض */
+        }
+
+        .counter-above.highlight-red .counter-number {
+            color: #ff4444; /* الرقم فقط يصبح أحمر */
+        }
+
+        .profile-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .circle {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.25);
+            border: 3px solid rgba(255,255,255,0.4);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .circle img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .circle .circle-placeholder {
+            position: relative;
+            z-index: 0;
+            color: rgba(255,255,255,0.6);
+            font-size: 11px;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .circle img[src]:not([src=""]) {
+            z-index: 1;
+        }
+
+        .circle.has-image .circle-placeholder {
+            display: none;
+        }
+
+        .counter-below {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FFFFFF;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .form-section {
+            width: 100%;
+            max-width: 420px;
+            margin-top: 36px;
+            padding-bottom: 40px;
+        }
+
+        .form-field {
+            width: 100%;
+            background-color: #E0E0E0;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 14px;
+            font-family: inherit;
+        }
+
+        .form-field::placeholder {
+            color: #666;
+        }
+
+        .form-field:focus {
+            outline: 2px solid #00C896;
+            outline-offset: 2px;
+        }
+
+        .guest-counter-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 12px;
+            background-color: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            width: 100%;
+        }
+
+        .guest-counter-box label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.95);
+            margin-right: 8px;
+        }
+
+        .guest-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            background-color: #00C896;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: opacity 0.2s;
+        }
+
+        .guest-btn:hover {
+            opacity: 0.9;
+        }
+
+        .guest-btn:active {
+            transform: scale(0.95);
+        }
+
+        .guest-num {
+            font-size: 20px;
+            font-weight: bold;
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .optional-small {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .fake-upload {
+            width: 100%;
+            background-color: #E0E0E0;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .fake-upload:hover {
+            background-color: #d5d5d5;
+        }
+
+        .error-msg {
+            display: none;
+            color: #FFFFFF;
+            font-size: 14px;
+            margin-top: -8px;
+            margin-bottom: 12px;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        input[type="text"].form-field {
+            color: #333;
+        }
+
+        .btn-send {
+            width: 100%;
+            background-color: #2196F3;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: opacity 0.2s;
+            position: relative;
+        }
+
+        .btn-send:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .spinner {
+            display: none;
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 8px;
+        }
+
+        .spinner.show {
+            display: block;
+        }
+
+        .btn-send .btn-text {
+            display: block;
+        }
+
+        .btn-send.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-msg {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(0,200,150,0.3);
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .event-title { font-size: 22px; }
+            .btn-action { font-size: 15px; padding: 12px 16px; }
+            .two-columns { gap: 16px; }
+            .column { max-width: 140px; }
+        }
+
+        #going-num,
+        #interesting-num {
+            font-size: 24px;   /* bigger numbers */
+        }
     </style>
 </head>
 <body>
-    <div id="login-box" class="login-box">
-        <h2 style="margin-bottom:16px;">Admin login</h2>
-        <input type="password" id="login-password" placeholder="Password" autocomplete="off">
-        <button type="button" id="login-btn">Enter</button>
-        <p id="login-error" class="error">Wrong password.</p>
-    </div>
+    <div class="container">
+        <h1 class="event-title">Waiting for the Text</h1>
 
-    <div id="admin-panel" class="admin-wrap" style="display:none;">
-        <h1>Edit event (title & numbers)</h1>
-        <form id="config-form">
-            <div class="form-group">
-                <label>Event title (text at top)</label>
-                <input type="text" id="eventTitle" placeholder="e.g. Register For Latin Party" required>
+        <!-- الأعداد + النص مباشرة تحت العنوان -->
+        <div class="two-columns">
+            <div class="column">
+                <div class="counter-above" id="going-counter-above">
+                    <span id="going-num" class="counter-number">...</span> People are Going
+                </div>
             </div>
-            <div class="form-group">
-                <label>Going – main number (e.g. ... People Going)</label>
-                <input type="number" id="goingNum" min="0" required>
+
+            <div class="column">
+                <div class="counter-above" id="interesting-counter-above">
+                    <span id="interesting-num" class="counter-number">...</span> People Interesting
+                </div>
             </div>
-            <div class="form-group">
-                <label>Going – number below images (e.g. ...+)</label>
-                <input type="number" id="goingPlus" min="0" required>
+        </div>
+
+        <!-- الأزرار تحت الأعداد -->
+        <div class="buttons-row">
+            <button type="button" class="btn-action" id="btn-going">Going</button>
+            <button type="button" class="btn-action" id="btn-interesting">Interesting</button>
+        </div>
+
+        <section class="form-section" id="form-section">
+            <form id="reg-form" onsubmit="return handleSubmit(event)">
+                <input type="text" class="form-field" id="fullname" placeholder="Your Full name?" required>
+
+                <div class="guest-counter-box">
+                    <label for="guest-num">Number of people coming with you</label>
+                    <button type="button" class="guest-btn" id="guest-minus" aria-label="Minus">−</button>
+                    <span class="guest-num" id="guest-num">0</span>
+                    <button type="button" class="guest-btn" id="guest-plus" aria-label="Plus">+</button>
+                </div>
+
+                <input type="text" class="form-field" id="instagram" placeholder="Instagram Username to Send you confirmation?" required>
+
+                <button type="submit" class="btn-send" id="btn-send">
+                    <span class="spinner" id="spinner"></span>
+                    <span class="btn-text">send</span>
+                </button>
+            </form>
+
+            <div class="success-msg" id="success-msg">
+                Thank you! Your registration has been submitted.
             </div>
-            <div class="form-group">
-                <label>Interesting – main number (e.g. 34 People Interesting)</label>
-                <input type="number" id="interestingNum" min="0" required>
-            </div>
-            <div class="form-group">
-                <label>Interesting – number below images (e.g. ...+)</label>
-                <input type="number" id="interestingPlus" min="0" required>
-            </div>
-            <button type="submit" class="btn btn-primary" id="save-btn">Save changes</button>
-        </form>
-        <p id="msg" class="msg"></p>
-        <p class="hint">To change the 6 profile images, upload new files to the <strong>profiles</strong> folder on GitHub (same names: going1.jpg, going2.jpg, etc.). See HOW_TO_UPLOAD_IMAGES_ON_GITHUB.md</p>
+        </section>
     </div>
 
     <script>
         (function() {
-            var CONFIG_API = '/api/config';
-            var ADMIN_PASSWORD = '7602';
+            var CONFIG_SCRIPT_URL = '/api/config';
+            var REGISTRATION_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIxaDk3zVEL_9p01Vy0Z6z6WveUTgmpyNRbQgW_djOQy1GHhXkrO4DSVRXolmPahLl/exec';
 
-            var loginBox = document.getElementById('login-box');
-            var adminPanel = document.getElementById('admin-panel');
-            var loginPassword = document.getElementById('login-password');
-            var loginBtn = document.getElementById('login-btn');
-            var loginError = document.getElementById('login-error');
-            var configForm = document.getElementById('config-form');
-            var saveBtn = document.getElementById('save-btn');
-            var msgEl = document.getElementById('msg');
+            var DELAY_BEFORE_COUNT = 500;
+            var DELAY_BEFORE_SCROLL = 900;
 
-            function showMsg(text, isError) {
-                msgEl.textContent = text;
-                msgEl.className = 'msg ' + (isError ? 'error' : 'success');
-                msgEl.style.display = 'block';
+            var state = {
+                goingNum: 187,
+                goingPlus: 184,
+                interestingNum: 34,
+                interestingPlus: 31
+            };
+
+            var goingSelected = false;
+            var interestingSelected = false;
+
+            var guestCount = 0;
+            var plusStep = 1;
+
+            function updateDisplay() {
+                document.getElementById('going-num').textContent = state.goingNum;
+                document.getElementById('interesting-num').textContent = state.interestingNum;
             }
 
-            function hideMsg() {
-                msgEl.style.display = 'none';
+            function updateGuestDisplay() {
+                document.getElementById('guest-num').textContent = guestCount;
             }
 
-            loginBtn.addEventListener('click', function() {
-                if (loginPassword.value === ADMIN_PASSWORD) {
-                    loginBox.style.display = 'none';
-                    adminPanel.style.display = 'block';
-                    loginError.classList.remove('show');
-                    loadConfig();
+            function scrollToForm() {
+                document.getElementById('form-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            function onGoing() {
+                goingSelected = !goingSelected;
+                if (goingSelected) {
+                    var el = document.getElementById('going-counter-above');
+                    el.classList.add('highlight-red');
+                    setTimeout(function() {
+                        state.goingNum += 1;
+                        state.goingPlus += 1;
+                        updateDisplay();
+                    }, DELAY_BEFORE_COUNT);
+                    setTimeout(scrollToForm, DELAY_BEFORE_SCROLL);
                 } else {
-                    loginError.classList.add('show');
+                    state.goingNum -= 1;
+                    state.goingPlus -= 1;
+                    updateDisplay();
+                    document.getElementById('going-counter-above').classList.remove('highlight-red');
                 }
-            });
-
-            loginPassword.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') loginBtn.click();
-            });
-
-            function loadConfig() {
-                saveBtn.disabled = true;
-                fetch(CONFIG_API)
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                        if (data && data.error) throw new Error(data.error);
-                        document.getElementById('eventTitle').value = (data && data.eventTitle) || '';
-                        document.getElementById('goingNum').value = (data && data.goingNum != null) ? data.goingNum : ...;
-                        document.getElementById('goingPlus').value = (data && data.goingPlus != null) ? data.goingPlus : ...;
-                        document.getElementById('interestingNum').value = (data && data.interestingNum != null) ? data.interestingNum : ...;
-                        document.getElementById('interestingPlus').value = (data && data.interestingPlus != null) ? data.interestingPlus : ...;
-                    })
-                    .catch(function() {
-                        showMsg('تعذّر تحميل الإعدادات. تأكد من CONFIG_SCRIPT_URL و ADMIN_SECRET في Vercel.', true);
-                    })
-                    .finally(function() { saveBtn.disabled = false; });
             }
 
-            configForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                saveBtn.disabled = true;
-                hideMsg();
-                var payload = {
-                    secret: ADMIN_PASSWORD,
-                    eventTitle: document.getElementById('eventTitle').value.trim(),
-                    goingNum: parseInt(document.getElementById('goingNum').value, 10) || 0,
-                    goingPlus: parseInt(document.getElementById('goingPlus').value, 10) || 0,
-                    interestingNum: parseInt(document.getElementById('interestingNum').value, 10) || 0,
-                    interestingPlus: parseInt(document.getElementById('interestingPlus').value, 10) || 0
-                };
-                fetch(CONFIG_API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                    .then(function(r) {
-                        if (r.ok) {
-                            showMsg('تم الحفظ. الصفحة الرئيسية ستظهر العنوان والأرقام الجديدة.');
-                            return;
-                        }
-                        return r.text().then(function(t) { showMsg(t || 'فشل الحفظ', true); });
-                    })
-                    .catch(function() { showMsg('خطأ في الشبكة. تأكد من Vercel ومتغيرات البيئة.', true); })
-                    .finally(function() { saveBtn.disabled = false; });
+            function onInteresting() {
+                interestingSelected = !interestingSelected;
+                if (interestingSelected) {
+                    var el = document.getElementById('interesting-counter-above');
+                    el.classList.add('highlight-red');
+                    setTimeout(function() {
+                        state.interestingNum += 1;
+                        state.interestingPlus += 1;
+                        updateDisplay();
+                    }, DELAY_BEFORE_COUNT);
+                } else {
+                    state.interestingNum -= 1;
+                    state.interestingPlus -= 1;
+                    updateDisplay();
+                    document.getElementById('interesting-counter-above').classList.remove('highlight-red');
+                }
+            }
+
+            document.getElementById('btn-going').addEventListener('click', onGoing);
+            document.getElementById('btn-interesting').addEventListener('click', onInteresting);
+
+            document.getElementById('guest-plus').addEventListener('click', function() {
+                guestCount += plusStep;
+                if (plusStep < 10) plusStep += 1;
+                updateGuestDisplay();
             });
+
+            document.getElementById('guest-minus').addEventListener('click', function() {
+                if (guestCount > 0) guestCount -= 1;
+                updateGuestDisplay();
+            });
+
+            window.handleSubmit = function(ev) {
+                ev.preventDefault();
+                var btn = document.getElementById('btn-send');
+                var spinner = document.getElementById('spinner');
+                var form = document.getElementById('reg-form');
+                var success = document.getElementById('success-msg');
+
+                btn.classList.add('loading');
+                btn.disabled = true;
+                spinner.classList.add('show');
+
+                var data = {
+                    fullName: document.getElementById('fullname').value,
+                    instagram: document.getElementById('instagram').value,
+                    guestCount: guestCount
+                };
+
+                if (REGISTRATION_SCRIPT_URL) {
+                    fetch(REGISTRATION_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(function() {});
+                }
+
+                setTimeout(function() {
+                    spinner.classList.remove('show');
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    form.style.display = 'none';
+                    success.classList.add('show');
+                    form.reset();
+                    guestCount = 0;
+                    plusStep = 1;
+                    updateGuestDisplay();
+                }, 2000);
+
+                return false;
+            };
+
+            function applyConfig(data) {
+                if (data && data.eventTitle != null) document.querySelector('.event-title').textContent = data.eventTitle;
+                if (data && data.goingNum != null) state.goingNum = Number(data.goingNum);
+                if (data && data.goingPlus != null) state.goingPlus = Number(data.goingPlus);
+                if (data && data.interestingNum != null) state.interestingNum = Number(data.interestingNum);
+                if (data && data.interestingPlus != null) state.interestingPlus = Number(data.interestingPlus);
+                updateDisplay();
+            }
+            if (CONFIG_SCRIPT_URL) {
+                fetch(CONFIG_SCRIPT_URL).then(function(r) { return r.json(); }).then(applyConfig).catch(function() { updateDisplay(); });
+            } else {
+                updateDisplay();
+            }
+            updateGuestDisplay();
         })();
     </script>
 </body>
