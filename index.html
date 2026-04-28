@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <!--
-  EVENT REGISTRATION PAGE — Site 1 (same as Site 2, but with "reason for joining" box).
+  EVENT REGISTRATION PAGE — Site 1
   - Event title and numbers from /api/config.
-  - Form sends to REGISTRATION_SCRIPT_URL (set your Site 1 Google Apps Script URL below).
-  - Removed: reason for joining textarea, birthday input.
-  - Removed: 6 images + numbers under them, and the optional Instagram profile-photo upload box.
+  - Form sends to REGISTRATION_SCRIPT_URL.
+  - After submit: shows a follow-required Instagram confirmation box for chicos.vienna.
 -->
 <html lang="en">
 <head>
@@ -98,65 +97,11 @@
         }
 
         .counter-above.highlight-red {
-            color: #FFFFFF; /* النص يبقى أبيض */
+            color: #FFFFFF;
         }
 
         .counter-above.highlight-red .counter-number {
-            color: #ff4444; /* الرقم فقط يصبح أحمر */
-        }
-
-        .profile-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .circle {
-            width: 100%;
-            aspect-ratio: 1;
-            border-radius: 50%;
-            background-color: rgba(255,255,255,0.25);
-            border: 3px solid rgba(255,255,255,0.4);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .circle img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        }
-
-        .circle .circle-placeholder {
-            position: relative;
-            z-index: 0;
-            color: rgba(255,255,255,0.6);
-            font-size: 11px;
-            text-align: center;
-            padding: 8px;
-        }
-
-        .circle img[src]:not([src=""]) {
-            z-index: 1;
-        }
-
-        .circle.has-image .circle-placeholder {
-            display: none;
-        }
-
-        .counter-below {
-            font-size: 20px;
-            font-weight: bold;
-            color: #FFFFFF;
-            text-align: center;
-            margin-top: 10px;
+            color: #ff4444;
         }
 
         .form-section {
@@ -234,42 +179,6 @@
             text-align: center;
         }
 
-        .optional-small {
-            font-size: 12px;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .fake-upload {
-            width: 100%;
-            background-color: #E0E0E0;
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 14px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .fake-upload:hover {
-            background-color: #d5d5d5;
-        }
-
-        .error-msg {
-            display: none;
-            color: #FFFFFF;
-            font-size: 14px;
-            margin-top: -8px;
-            margin-bottom: 12px;
-        }
-
-        .error-msg.show {
-            display: block;
-        }
-
         input[type="text"].form-field {
             color: #333;
         }
@@ -343,7 +252,66 @@
 
         #going-num,
         #interesting-num {
-            font-size: 24px;   /* bigger numbers */
+            font-size: 24px;
+        }
+
+        /* Follow overlay */
+        .follow-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 9999;
+        }
+
+        .follow-overlay.show {
+            display: flex;
+        }
+
+        .follow-box {
+            width: 100%;
+            max-width: 420px;
+            background: #FFFFFF;
+            color: #0f172a;
+            border-radius: 14px;
+            padding: 18px 16px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .follow-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #0f172a;
+        }
+
+        .follow-text {
+            font-size: 14px;
+            line-height: 1.45;
+            color: rgba(15,23,42,0.9);
+            margin-bottom: 14px;
+        }
+
+        .follow-handle {
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .follow-cta {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            background: #00C896;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-weight: 800;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -351,7 +319,6 @@
     <div class="container">
         <h1 class="event-title">Waiting for the Text</h1>
 
-        <!-- الأعداد + النص مباشرة تحت العنوان -->
         <div class="two-columns">
             <div class="column">
                 <div class="counter-above" id="going-counter-above">
@@ -366,7 +333,6 @@
             </div>
         </div>
 
-        <!-- الأزرار تحت الأعداد -->
         <div class="buttons-row">
             <button type="button" class="btn-action" id="btn-going">Going</button>
             <button type="button" class="btn-action" id="btn-interesting">Interesting</button>
@@ -395,6 +361,22 @@
                 Thank you! Your registration has been submitted.
             </div>
         </section>
+    </div>
+
+    <div class="follow-overlay" id="follow-overlay" role="dialog" aria-modal="true" aria-labelledby="follow-title">
+        <div class="follow-box">
+            <div class="follow-title" id="follow-title">تأكيد الحجز عبر إنستغرام</div>
+            <div class="follow-text">
+                سوف نقوم بإرسال تأكيد الحجز لك على إنستغرام من خلال اليوزر نيم
+                <span class="follow-handle">chicos.vienna</span>.
+                يجب عليك متابعة
+                <span class="follow-handle">chicos.vienna</span>
+                لكي نستطيع إرسال التأكيد لك، لأن إنستغرام لا يسمح بإرسال رسائل للأشخاص الذين لا يتابعون الصفحة.
+            </div>
+            <a class="follow-cta" href="https://www.instagram.com/chicos.vienna/" target="_blank" rel="noopener noreferrer">
+                Follow chicos.vienna on Instagram
+            </a>
+        </div>
     </div>
 
     <script>
@@ -482,6 +464,10 @@
                 updateGuestDisplay();
             });
 
+            function showFollowOverlay() {
+                document.getElementById('follow-overlay').classList.add('show');
+            }
+
             window.handleSubmit = function(ev) {
                 ev.preventDefault();
                 var btn = document.getElementById('btn-send');
@@ -513,6 +499,7 @@
                     guestCount = 0;
                     plusStep = 1;
                     updateGuestDisplay();
+                    showFollowOverlay();
                 }, 2000);
 
                 return false;
