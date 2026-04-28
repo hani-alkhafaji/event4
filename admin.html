@@ -334,6 +334,86 @@
             display: block;
         }
 
+        .follow-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 9999;
+        }
+
+        .follow-overlay.show {
+            display: flex;
+        }
+
+        .follow-modal {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 14px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .follow-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .follow-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 12px;
+        }
+
+        .follow-handle {
+            font-weight: 800;
+        }
+
+        .follow-actions {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .follow-btn {
+            flex: 1;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .follow-btn-primary {
+            background-color: #00C896;
+            color: #FFFFFF;
+        }
+
+        .follow-btn-secondary {
+            background-color: rgba(255,255,255,0.16);
+            color: #FFFFFF;
+        }
+
+        .follow-note {
+            font-size: 12px;
+            color: rgba(255,255,255,0.85);
+            margin-top: 10px;
+        }
+
         @media (max-width: 480px) {
             .event-title { font-size: 22px; }
             .btn-action { font-size: 15px; padding: 12px 16px; }
@@ -397,6 +477,29 @@
         </section>
     </div>
 
+    <div class="follow-overlay" id="follow-overlay" role="dialog" aria-modal="true" aria-labelledby="follow-title">
+        <div class="follow-modal">
+            <div class="follow-title" id="follow-title">Important</div>
+            <div class="follow-text">
+                We will send your booking confirmation on Instagram through the username
+                <span class="follow-handle">@chicos.vienna</span>.
+                <br>
+                Instagram does not allow us to message people who don’t follow the page.
+                <br>
+                Please follow <span class="follow-handle">@chicos.vienna</span> so we can send you the confirmation.
+            </div>
+            <div class="follow-actions">
+                <a class="follow-btn follow-btn-primary" id="follow-link" href="https://www.instagram.com/chicos.vienna/" target="_blank" rel="noopener noreferrer">
+                    Follow @chicos.vienna
+                </a>
+                <button type="button" class="follow-btn follow-btn-secondary" id="follow-close">
+                    OK
+                </button>
+            </div>
+            <div class="follow-note">If you don’t follow, we may not be able to confirm your booking via Instagram.</div>
+        </div>
+    </div>
+
     <script>
         (function() {
             var CONFIG_SCRIPT_URL = '/api/config';
@@ -425,6 +528,18 @@
 
             function updateGuestDisplay() {
                 document.getElementById('guest-num').textContent = guestCount;
+            }
+
+            function showFollowOverlay() {
+                var overlay = document.getElementById('follow-overlay');
+                if (!overlay) return;
+                overlay.classList.add('show');
+            }
+
+            function hideFollowOverlay() {
+                var overlay = document.getElementById('follow-overlay');
+                if (!overlay) return;
+                overlay.classList.remove('show');
             }
 
             function scrollToForm() {
@@ -482,12 +597,19 @@
                 updateGuestDisplay();
             });
 
+            document.getElementById('follow-close').addEventListener('click', hideFollowOverlay);
+            document.getElementById('follow-overlay').addEventListener('click', function(ev) {
+                if (ev.target && ev.target.id === 'follow-overlay') hideFollowOverlay();
+            });
+
             window.handleSubmit = function(ev) {
                 ev.preventDefault();
                 var btn = document.getElementById('btn-send');
                 var spinner = document.getElementById('spinner');
                 var form = document.getElementById('reg-form');
                 var success = document.getElementById('success-msg');
+
+                showFollowOverlay();
 
                 btn.classList.add('loading');
                 btn.disabled = true;
